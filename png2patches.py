@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import albumentations as A
 
-from yangUtils.io import read_png
+# from yangUtils.io import read_png
 from utils import (
     deduplicate,
     image2patches,
@@ -22,7 +22,7 @@ if __name__ == '__main__':
     for i, file_name in enumerate(file_names, 1):
         print(f'{i}/{len(file_names)}, {file_name}:')
 
-        image = read_png(f'./train_images/{file_name}.png')
+        image = read_png(f'/home/jinho/datasets/UBC-OCEAN/train_images/{file_name}.png')
 
         # 1. downsample
         is_tma = df.loc[file_name, 'is_tma']

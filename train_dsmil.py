@@ -21,7 +21,7 @@ FEATURES_TYPE = args.t
 yd.env.seed = 0
 yd.env.exp_path = f'./res/{FEATURES_TYPE}_dsmil'
 
-DATASET_PATH = './npy'
+DATASET_PATH = './npy/features'
 SPLIT_PATH = './split'
 BATCH_SIZE = 4
 if FEATURES_TYPE == 'ctrans':
@@ -95,6 +95,8 @@ class MyModelModule(yd.ModelModule):
 
     # (N, C), (1,)
     def _step(self, x, y):
+        x = x.to('cuda')
+        y = y.to('cuda')
         bag_logits, inst_logits, _, _ = self.model(x)
         inst_logits, _ = torch.max(inst_logits, dim=0)
         bag_logits = bag_logits[None]
@@ -160,7 +162,7 @@ if __name__ == '__main__':
         model_module=MyModelModule(),
         data_module=MyDataModule(),
         early_stop_params={
-            'monitor': {'metric.recall': 'max'},
+            'monitor': {'metric.recall': 'big'},
             'patience': 25,
             'min_stop_epoch': 25,
             'max_stop_epoch': 200,

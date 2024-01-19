@@ -136,7 +136,7 @@ class Attention(nn.Module):
             return self.to_out(out), A
         else:
             return self.to_out(out)
-        
+
 
 class DualQueryCrossAttention(nn.Module):
     def __init__(self, query_dim, context_dim = None, heads = 8, dim_head = 64, dropout = 0., scale=None):
@@ -197,17 +197,17 @@ class DualQueryCrossAttention(nn.Module):
 class Merger(nn.Module):
     def __init__(self, proj_dim):
         super(Merger, self).__init__()
-        
+
         self.vit_head = nn.Linear(384, proj_dim)
         self.swin_head = nn.Linear(768, proj_dim)
         self.swav_head = nn.Linear(2048, proj_dim)
-        
+
 
     def forward(self, data):
         vit_out = self.vit_head(data['vit_feats'])
         swin_out = self.swin_head(data['swin_feats'])
         swav_out = self.swav_head(data['swav_feats'])
-      
+
         joint = torch.cat([vit_out, swin_out, swav_out], dim=-1)
         return joint
 
@@ -277,30 +277,30 @@ class Perceiver(nn.Module):
 
         self.latents = nn.Parameter(
             torch.nn.init.trunc_normal_(
-                torch.zeros((num_latents, latent_dim)), 
-                mean=0, 
-                std=0.02, 
-                a=-latent_bounds, 
+                torch.zeros((num_latents, latent_dim)),
+                mean=0,
+                std=0.02,
+                a=-latent_bounds,
                 b=latent_bounds))
-        
+
 
         self.score_latents = nn.Parameter(
             torch.nn.init.trunc_normal_(
-                torch.zeros((1, latent_dim)), 
-                mean=0, 
-                std=0.02, 
-                a=-latent_bounds, 
+                torch.zeros((1, latent_dim)),
+                mean=0,
+                std=0.02,
+                a=-latent_bounds,
                 b=latent_bounds))
-                    
+
         # Cross-Attention Layer
         get_cross_attn = lambda: PreNorm(latent_dim, DualQueryCrossAttention(latent_dim, input_dim, heads = cross_heads, dim_head = cross_dim_head, dropout = attn_dropout, scale=scale), context_dim = input_dim) #new
         get_cross_ff = lambda: PreNorm(latent_dim, FeedForward(latent_dim, dropout = ff_dropout))
         get_mil_ff = lambda: PreNorm(latent_dim, FeedForward(latent_dim, dropout = ff_dropout))
-        
-        
+
+
         get_latent_attn = lambda: PreNorm(latent_dim, Attention(latent_dim, heads = latent_heads, dim_head = latent_dim_head, dropout = attn_dropout))
         get_latent_ff = lambda: PreNorm(latent_dim, FeedForward(latent_dim, dropout = ff_dropout))
-        
+
         get_cross_attn, get_cross_ff, get_latent_attn, get_latent_ff, get_mil_ff = map(cache_fn, (get_cross_attn, get_cross_ff, get_latent_attn, get_latent_ff, get_mil_ff))
 
         self.layers = nn.ModuleList([])
@@ -341,7 +341,7 @@ class Perceiver(nn.Module):
         return_embeddings = False,
     ):
         data = self.proj_embeddings(data)
-                
+
 
         if len(data.shape)==2: # flops
             data= data.unsqueeze(0)  # flops
@@ -364,11 +364,11 @@ class Perceiver(nn.Module):
 
         x = repeat(self.latents, 'n d -> b n d', b = b)
 
-      
+
         score_x = repeat(self.score_latents, 'n d -> b n d', b = b)
 
         # layers
-        for cross_attn, cross_ff, mil_ff, self_attns in self.layers: 
+        for cross_attn, cross_ff, mil_ff, self_attns in self.layers:
             x_attn, A_raw, score_x_attn, score_A  = cross_attn(x=x, score_x=score_x, context=data, mask=mask)
             x = x_attn + x
             x = cross_ff(x) + x
@@ -385,5 +385,4 @@ class Perceiver(nn.Module):
         Y_hat = torch.argmax(logits, dim=1)
         Y_prob = F.softmax(logits, dim = 1)
 
-        return logits, Y_prob, Y_hat, score_A, results_dict       
-
+        return logits, Y_prob, Y_hat, score_A, results_dict

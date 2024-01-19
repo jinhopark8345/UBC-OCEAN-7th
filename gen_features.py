@@ -34,7 +34,7 @@ class MyModelModule(yd.ModelModule):
         
         if FEATURES_TYPE == 'ctrans':
             self.model = CTransPath(num_classes=0)
-            self.model.load_state_dict(torch.load(f'./ctranspath.pth')['model'])
+            self.model.load_state_dict(torch.load(f'./ckpts/ctranspath.pth')['model'])
         elif FEATURES_TYPE == 'vits16':
             self.model = timm.create_model(
                 model_name="hf-hub:1aurent/vit_small_patch16_224.lunit_dino",

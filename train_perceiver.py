@@ -22,7 +22,7 @@ FEATURES_TYPE = args.t
 yd.env.seed = 0
 yd.env.exp_path = f'./res/{FEATURES_TYPE}_perceiver'
 
-DATASET_PATH = './npy'
+DATASET_PATH = './npy/features'
 SPLIT_PATH = './split'
 
 BATCH_SIZE = 4
@@ -95,6 +95,8 @@ class MyModelModule(yd.ModelModule):
         loss_all = 0
         for b in batch:
             x, label, y = b[FEATURES_TYPE], b['label'], b['y']
+            x, label, y = x.cuda(), label.cuda(), y.cuda()
+
 
             logits, _, _, _, results_dict = self.model(x)
             loss = self.criterion(logits, y).mean()
@@ -124,6 +126,7 @@ class MyModelModule(yd.ModelModule):
 
     def val_step(self, batch):
         x, label = batch[FEATURES_TYPE][0], batch['label']
+        x, label = x.cuda(), label.cuda()
 
         logits, _, _, _, _ = self.model(x)
         
@@ -212,7 +215,7 @@ if __name__ == '__main__':
         model_module=MyModelModule(),
         data_module=MyDataModule(),
         early_stop_params={
-            'monitor': {'metric.recall': 'max'},
+            'monitor': {'metric.recall': 'big'},
             'patience': 25,
             'min_stop_epoch': 25,
             'max_stop_epoch': 200,

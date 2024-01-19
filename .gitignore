@@ -1,3 +1,5 @@
 npy
 res
 __pycache__
+
+ckpts/

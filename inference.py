@@ -127,8 +127,6 @@ class MyModelModule(yd.ModelModule):
         patches, image_id = batch['patches'], batch['image_id']
         patches, image_id = patches[0], image_id[0]
 
-        breakpoint()
-
         self.res['image_id'].append(image_id)
 
         if patches.shape == (0,):
@@ -136,6 +134,22 @@ class MyModelModule(yd.ModelModule):
         else:
             probs = []
             perceiver_probs = []
+
+            """
+            total 4 paths,
+                - ctrans -> dsmil,
+                - ctrans -> perceiver,
+                - vits16 -> dsmil,
+                - vits16 -> perceiver
+
+            and each path has 5 models,
+
+            so total probs has 20 predictions from each path x #models
+
+            1. perceiver_probs mean (probs from perceiver path of the probs)
+                -> if max(mean(perceiver_probs)) < THRESH, select Other label
+                -> if max(mean(perceiver_probs)) >= THRESH, select the max(mean(probs)) label
+            """
 
             # ctranspath
             features = self.gen_features(self.ctrans, patches)  # (N, 768)

@@ -20,7 +20,7 @@ FEATURES_TYPE = args.t
 
 yd.env.seed = 0
 
-OUT_PATH = f'./npy/features/{FEATURES_TYPE}'
+OUT_PATH = f'./npy/features2/{FEATURES_TYPE}'
 mkdir(OUT_PATH)
 
 DATASET_PATH = f'./npy/256'
